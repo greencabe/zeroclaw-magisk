@@ -1,0 +1,6 @@
+id=zeroclaw
+name=ZeroClaw
+version=@VERSION@
+versionCode=@VERSION_CODE@
+author=greencabe
+description=ZeroClaw CLI and embedded dashboard for ARM64 Android

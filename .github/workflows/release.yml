@@ -1,0 +1,145 @@
+name: Release Magisk Module
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_tag:
+        description: 'ZeroClaw upstream tag to build, empty = latest v* tag'
+        required: false
+        type: string
+      force:
+        description: 'Rebuild release even if it already exists'
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: '17 3 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build upstream ZeroClaw tag as Magisk module
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout packaging repo
+        uses: actions/checkout@v4
+        with:
+          path: zeroclaw-magisk
+
+      - name: Resolve upstream tag
+        id: upstream
+        env:
+          INPUT_TAG: ${{ inputs.upstream_tag }}
+        run: |
+          set -euo pipefail
+          if [ -n "${INPUT_TAG:-}" ]; then
+            tag="$INPUT_TAG"
+          else
+            tag=$(git ls-remote --tags --refs https://github.com/zeroclaw-labs/zeroclaw.git 'v*' | awk -F/ '{print $3}' | sort -V | tail -1)
+          fi
+          if [ -z "$tag" ]; then
+            echo "No upstream v* tag found" >&2
+            exit 1
+          fi
+          sha=$(git ls-remote --tags --refs https://github.com/zeroclaw-labs/zeroclaw.git "refs/tags/$tag" | awk '{print $1}')
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Upstream tag: $tag ($sha)"
+
+      - name: Skip existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.upstream.outputs.tag }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          set -euo pipefail
+          if [ "$FORCE" != "true" ] && gh release view "$TAG" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG already exists; skip"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout upstream ZeroClaw
+        if: steps.existing.outputs.skip != 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: zeroclaw-labs/zeroclaw
+          ref: ${{ steps.upstream.outputs.tag }}
+          path: zeroclaw
+
+      - name: Overlay Magisk packaging
+        if: steps.existing.outputs.skip != 'true'
+        run: cp -a zeroclaw-magisk/packaging zeroclaw/
+
+      - name: Install system packages
+        if: steps.existing.outputs.skip != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zip
+
+      - name: Set up Node
+        if: steps.existing.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: zeroclaw/web/package-lock.json
+
+      - name: Set up Rust
+        if: steps.existing.outputs.skip != 'true'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Cache Cargo
+        if: steps.existing.outputs.skip != 'true'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: zeroclaw
+          key: magisk-aarch64-linux-android-${{ steps.upstream.outputs.tag }}
+
+      - name: Set up Android NDK
+        if: steps.existing.outputs.skip != 'true'
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+          local-cache: true
+
+      - name: Build Magisk module
+        if: steps.existing.outputs.skip != 'true'
+        working-directory: zeroclaw
+        env:
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
+        run: ./packaging/magisk/build-module.sh
+
+      - name: Publish GitHub release
+        if: steps.existing.outputs.skip != 'true'
+        working-directory: zeroclaw-magisk
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.upstream.outputs.tag }}
+          UPSTREAM_SHA: ${{ steps.upstream.outputs.sha }}
+        run: |
+          set -euo pipefail
+          gh release delete "$TAG" --yes --cleanup-tag >/dev/null 2>&1 || true
+          git tag -f "$TAG"
+          git push origin "refs/tags/$TAG" --force
+          gh release create "$TAG" \
+            ../zeroclaw/dist/magisk/zeroclaw-magisk.zip \
+            --title "ZeroClaw Magisk $TAG" \
+            --notes "ARM64 Android Magisk module built from upstream zeroclaw tag $TAG at $UPSTREAM_SHA. Dashboard embedded by default."
+
+      - name: Upload Magisk artifact
+        if: steps.existing.outputs.skip != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeroclaw-magisk-${{ steps.upstream.outputs.tag }}-arm64
+          path: zeroclaw/dist/magisk/zeroclaw-magisk.zip
+          if-no-files-found: error
