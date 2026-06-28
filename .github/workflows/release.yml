@@ -112,13 +112,30 @@ jobs:
           ndk-version: r27c
           local-cache: true
 
+
+      - name: Resolve Android toolchain
+        if: steps.existing.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          cc=$(find "$HOME/.setup-ndk" "$ANDROID_HOME" -type f -name aarch64-linux-android21-clang 2>/dev/null | head -1)
+          if [ -z "$cc" ]; then
+            echo "aarch64-linux-android21-clang not found" >&2
+            find "$HOME/.setup-ndk" "$ANDROID_HOME" -maxdepth 6 -type f -name '*clang*' 2>/dev/null | sort | head -50 >&2
+            exit 1
+          fi
+          ar=$(dirname "$cc")/llvm-ar
+          test -x "$ar"
+          echo "ANDROID_CC=$cc" >> "$GITHUB_ENV"
+          echo "ANDROID_AR=$ar" >> "$GITHUB_ENV"
+          echo "Using Android CC: $cc"
+
       - name: Build Magisk module
         if: steps.existing.outputs.skip != 'true'
         working-directory: zeroclaw
         env:
-          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
-          CC_aarch64_linux_android: ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang
-          AR_aarch64_linux_android: ${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar
+          CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: ${{ env.ANDROID_CC }}
+          CC_aarch64_linux_android: ${{ env.ANDROID_CC }}
+          AR_aarch64_linux_android: ${{ env.ANDROID_AR }}
         run: ./packaging/magisk/build-module.sh
 
       - name: Publish GitHub release
