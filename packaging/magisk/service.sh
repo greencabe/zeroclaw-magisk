@@ -10,7 +10,7 @@ BIN=$MODDIR/system/bin/zeroclaw
 MAX_LOG_BYTES=1048576
 
 export HOME=$DATA_DIR
-export PATH=/data/data/com.termux/files/usr/bin:/system/bin:/system/xbin:/data/adb/ksu/bin:$PATH
+export PATH=/data/adb/zeroclaw/bin:/data/data/com.termux/files/usr/bin:/system/bin:/system/xbin:/data/adb/ksu/bin:$PATH
 
 mkdir -p "$DATA_DIR" "$LOG_DIR"
 

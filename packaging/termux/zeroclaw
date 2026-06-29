@@ -2,12 +2,13 @@
 
 BIN=/data/adb/modules/zeroclaw/system/bin/zeroclaw
 CONFIG_DIR=/data/adb/zeroclaw
+ROOT_PATH=/data/adb/zeroclaw/bin:/data/data/com.termux/files/usr/bin:/system/bin:/system/xbin:/data/adb/ksu/bin:$PATH
 
 quote_arg() {
   printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
 }
 
-cmd="$(quote_arg "$BIN") --config-dir $(quote_arg "$CONFIG_DIR")"
+cmd="export PATH=$(quote_arg "$ROOT_PATH"); export HOME=$(quote_arg "$CONFIG_DIR"); $(quote_arg "$BIN") --config-dir $(quote_arg "$CONFIG_DIR")"
 for arg in "$@"; do
   cmd="$cmd $(quote_arg "$arg")"
 done

@@ -27,6 +27,7 @@ Install the zip in Magisk, KernelSU, or Next SU module manager, then reboot.
 - Boot log: `/data/local/tmp/zeroclaw/zeroclaw.log`
 - WebUI: opens `http://127.0.0.1:42617/`
 - Action button: color-coded health check
+- CLI tool shims: `/data/adb/zeroclaw/bin`
 - Rotated log: `/data/local/tmp/zeroclaw/zeroclaw.log.1`
 
 ## Dashboard
