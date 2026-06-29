@@ -26,7 +26,7 @@ Install the zip in Magisk, KernelSU, or Next SU module manager, then reboot.
 - Disable autostart: `touch /data/adb/zeroclaw/disable-autostart`
 - Boot log: `/data/local/tmp/zeroclaw/zeroclaw.log`
 - WebUI: opens `http://127.0.0.1:42617/`
-- Action button: opens dashboard in browser
+- Action button: color-coded health check
 - Rotated log: `/data/local/tmp/zeroclaw/zeroclaw.log.1`
 
 ## Dashboard

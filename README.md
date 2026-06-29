@@ -18,7 +18,7 @@ This repository does not fork ZeroClaw source code. GitHub Actions builds from o
 - Stores config/state in `/data/adb/zeroclaw`.
 - Writes logs to `/data/local/tmp/zeroclaw/zeroclaw.log`.
 - Root manager WebUI opens `http://127.0.0.1:42617/`.
-- Root manager action button opens dashboard in browser.
+- Root manager action button shows a color-coded ZeroClaw health report.
 
 Disable autostart:
 
