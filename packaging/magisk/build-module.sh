@@ -42,9 +42,10 @@ sed \
 cp "$ROOT/packaging/magisk/customize.sh" "$MODULE_DIR/customize.sh"
 cp "$ROOT/packaging/magisk/service.sh" "$MODULE_DIR/service.sh"
 cp "$ROOT/packaging/magisk/uninstall.sh" "$MODULE_DIR/uninstall.sh"
-cp "$ROOT/packaging/magisk/action.sh" "$MODULE_DIR/action.sh"
+cp "$ROOT/packaging/magisk/action.sh" "$MODULE_DIR/action.sh" "$MODULE_DIR/termux-wrapper.sh"
 cp -a "$ROOT/packaging/magisk/webroot" "$MODULE_DIR/webroot"
-chmod 0755 "$MODULE_DIR/system/bin/zeroclaw" "$MODULE_DIR/customize.sh" "$MODULE_DIR/service.sh" "$MODULE_DIR/uninstall.sh" "$MODULE_DIR/action.sh"
+cp "$ROOT/packaging/termux/zeroclaw" "$MODULE_DIR/termux-wrapper.sh"
+chmod 0755 "$MODULE_DIR/system/bin/zeroclaw" "$MODULE_DIR/customize.sh" "$MODULE_DIR/service.sh" "$MODULE_DIR/uninstall.sh" "$MODULE_DIR/action.sh" "$MODULE_DIR/termux-wrapper.sh"
 
 ( cd "$MODULE_DIR" && zip -r9 "$OUT_DIR/zeroclaw-magisk.zip" . )
 

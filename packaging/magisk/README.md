@@ -36,3 +36,19 @@ The module builds ZeroClaw with `embedded-web`, so the dashboard assets are comp
 ```sh
 zeroclaw --config-dir /data/adb/zeroclaw gateway start
 ```
+
+## Termux CLI wrapper
+
+Optional wrapper after installing the module:
+
+```sh
+cp /data/adb/modules/zeroclaw/termux-wrapper.sh $PREFIX/bin/zeroclaw
+chmod +x $PREFIX/bin/zeroclaw
+```
+
+Then use:
+
+```sh
+zeroclaw status
+zeroclaw self-test
+```

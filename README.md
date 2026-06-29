@@ -33,3 +33,23 @@ Open **Actions → Release Magisk Module → Run workflow**.
 - `upstream_tag` empty: build latest upstream tag.
 - `upstream_tag=v0.8.2`: build specific tag.
 - `force=true`: rebuild even if release exists.
+
+## Termux CLI wrapper
+
+Install this optional wrapper so `zeroclaw ...` works from Termux without typing `su -c` each time:
+
+```sh
+curl -L https://raw.githubusercontent.com/greencabe/zeroclaw-magisk/main/packaging/termux/zeroclaw -o $PREFIX/bin/zeroclaw
+chmod +x $PREFIX/bin/zeroclaw
+```
+
+Examples:
+
+```sh
+zeroclaw status
+zeroclaw self-test
+zeroclaw doctor
+zeroclaw gateway get-paircode --new
+```
+
+The wrapper still uses root internally because module files and config live under `/data/adb`.

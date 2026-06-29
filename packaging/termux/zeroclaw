@@ -1,0 +1,15 @@
+#!/data/data/com.termux/files/usr/bin/sh
+
+BIN=/data/adb/modules/zeroclaw/system/bin/zeroclaw
+CONFIG_DIR=/data/adb/zeroclaw
+
+quote_arg() {
+  printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"
+}
+
+cmd="$(quote_arg "$BIN") --config-dir $(quote_arg "$CONFIG_DIR")"
+for arg in "$@"; do
+  cmd="$cmd $(quote_arg "$arg")"
+done
+
+exec su -c "$cmd"
