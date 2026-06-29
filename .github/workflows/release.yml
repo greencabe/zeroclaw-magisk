@@ -77,15 +77,6 @@ jobs:
         if: steps.existing.outputs.skip != 'true'
         run: cp -a zeroclaw-magisk/packaging zeroclaw/
 
-      - name: Apply Magisk source patches
-        if: steps.existing.outputs.skip != 'true'
-        working-directory: zeroclaw
-        run: |
-          for patch in ../zeroclaw-magisk/patches/*.py; do
-            [ -e "$patch" ] || continue
-            python3 "$patch"
-          done
-
       - name: Install system packages
         if: steps.existing.outputs.skip != 'true'
         run: |
