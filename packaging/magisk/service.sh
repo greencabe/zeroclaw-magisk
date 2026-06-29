@@ -9,6 +9,9 @@ DISABLE_FILE=$DATA_DIR/disable-autostart
 BIN=$MODDIR/system/bin/zeroclaw
 MAX_LOG_BYTES=1048576
 
+export HOME=$DATA_DIR
+export PATH=/data/data/com.termux/files/usr/bin:/system/bin:/system/xbin:/data/adb/ksu/bin:$PATH
+
 mkdir -p "$DATA_DIR" "$LOG_DIR"
 
 until [ "$(getprop sys.boot_completed 2>/dev/null)" = "1" ]; do
@@ -38,8 +41,8 @@ rotate_log() {
 backoff=5
 while [ ! -f "$DISABLE_FILE" ]; do
   rotate_log
-  echo "$(date): starting zeroclaw gateway via $BIN" >> "$LOG_FILE"
-  "$BIN" --config-dir "$DATA_DIR" gateway start >> "$LOG_FILE" 2>&1 &
+  echo "$(date): starting zeroclaw daemon via $BIN" >> "$LOG_FILE"
+  "$BIN" --config-dir "$DATA_DIR" daemon >> "$LOG_FILE" 2>&1 &
   child=$!
   echo "$child" > "$PID_FILE"
   wait "$child"
