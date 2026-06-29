@@ -1,11 +1,12 @@
 #!/system/bin/sh
 
+MODDIR=${0%/*}
 DATA_DIR=/data/adb/zeroclaw
 LOG_DIR=/data/local/tmp/zeroclaw
 LOG_FILE=$LOG_DIR/zeroclaw.log
 PID_FILE=$DATA_DIR/zeroclaw.pid
 DISABLE_FILE=$DATA_DIR/disable-autostart
-BIN=/system/bin/zeroclaw
+BIN=$MODDIR/system/bin/zeroclaw
 MAX_LOG_BYTES=1048576
 
 mkdir -p "$DATA_DIR" "$LOG_DIR"
@@ -37,7 +38,7 @@ rotate_log() {
 backoff=5
 while [ ! -f "$DISABLE_FILE" ]; do
   rotate_log
-  echo "$(date): starting zeroclaw gateway" >> "$LOG_FILE"
+  echo "$(date): starting zeroclaw gateway via $BIN" >> "$LOG_FILE"
   "$BIN" --config-dir "$DATA_DIR" gateway start >> "$LOG_FILE" 2>&1 &
   child=$!
   echo "$child" > "$PID_FILE"
@@ -48,6 +49,9 @@ while [ ! -f "$DISABLE_FILE" ]; do
   sleep "$backoff"
   if [ "$backoff" -lt 60 ]; then
     backoff=$((backoff * 2))
+    if [ "$backoff" -gt 60 ]; then
+      backoff=60
+    fi
   fi
 done
 
