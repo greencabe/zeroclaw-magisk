@@ -117,17 +117,24 @@ jobs:
         if: steps.existing.outputs.skip != 'true'
         run: |
           set -euo pipefail
-          cc=$(find "$HOME/.setup-ndk" "$ANDROID_HOME" -type f -name aarch64-linux-android21-clang 2>/dev/null | head -1)
+          cc=
+          for candidate in $(find "$HOME/.setup-ndk" "$ANDROID_HOME" -type f -name aarch64-linux-android21-clang 2>/dev/null | sort); do
+            dir=$(dirname "$candidate")
+            if [ -x "$dir/clang" ] && [ -x "$dir/llvm-ar" ]; then
+              cc="$candidate"
+              break
+            fi
+          done
           if [ -z "$cc" ]; then
-            echo "aarch64-linux-android21-clang not found" >&2
-            find "$HOME/.setup-ndk" "$ANDROID_HOME" -maxdepth 6 -type f -name '*clang*' 2>/dev/null | sort | head -50 >&2
+            echo "valid aarch64-linux-android21-clang not found" >&2
+            find "$HOME/.setup-ndk" "$ANDROID_HOME" -maxdepth 8 -type f \( -name 'aarch64-linux-android21-clang' -o -name 'clang' -o -name 'llvm-ar' \) 2>/dev/null | sort | head -100 >&2
             exit 1
           fi
           ar=$(dirname "$cc")/llvm-ar
-          test -x "$ar"
           echo "ANDROID_CC=$cc" >> "$GITHUB_ENV"
           echo "ANDROID_AR=$ar" >> "$GITHUB_ENV"
           echo "Using Android CC: $cc"
+          "$cc" --version
 
       - name: Build Magisk module
         if: steps.existing.outputs.skip != 'true'
