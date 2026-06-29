@@ -17,6 +17,8 @@ This repository does not fork ZeroClaw source code. GitHub Actions builds from o
 - Restarts ZeroClaw if it crashes, with backoff up to 60 seconds.
 - Stores config/state in `/data/adb/zeroclaw`.
 - Writes logs to `/data/local/tmp/zeroclaw/zeroclaw.log`.
+- Root manager WebUI opens `http://127.0.0.1:42617/`.
+- Root manager action button opens dashboard in browser.
 
 Disable autostart:
 
