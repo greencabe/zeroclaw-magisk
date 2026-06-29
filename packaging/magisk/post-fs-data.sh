@@ -5,10 +5,18 @@ TERMUX_BIN=/data/data/com.termux/files/usr/bin
 
 mkdir -p "$BIN_DIR"
 
-for tool in git rg python python3 node npm npx curl wget tar unzip zip sh; do
-  if [ -x "$TERMUX_BIN/$tool" ]; then
-    ln -sf "$TERMUX_BIN/$tool" "$BIN_DIR/$tool"
-  fi
-done
+if [ -d "$TERMUX_BIN" ]; then
+  find "$TERMUX_BIN" -maxdepth 1 \( -type f -o -type l \) 2>/dev/null | while IFS= read -r tool; do
+    name=${tool##*/}
+    case "$name" in
+      ''|.*|su|sudo|login|run-as)
+        continue
+        ;;
+    esac
+    if [ -x "$tool" ]; then
+      ln -sf "$tool" "$BIN_DIR/$name"
+    fi
+  done
+fi
 
 chmod 0755 "$BIN_DIR"
